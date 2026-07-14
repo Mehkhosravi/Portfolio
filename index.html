@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Mehrnaz Khosravi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="fanta.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <header>
+        <a href="/">Mehrnaz Khosravi</a>
+        <nav>
+            <a target="_blank" href="https://www.linkedin.com/in/mehrnaz-khosravi/"><i class="fa-brands fa-linkedin"></i> 
+                Linkedin</a>
+            <a target="_blank" href="https://github.com/Mehkhosravi"><i class="fa-brands fa-github"></i>
+                Github</a>       
+        </nav>
+    </header>
+    <main>
+        <section>
+            <div class="intro-header">
+                <h1>Hi! I'm Mehrnaz Khosravi</h1>
+                <p>Software Engineer</p>
+                <h5>I love creating innovative solutions to complex problems.</h5>
+            </div>
+            <div class="links-container">
+                <h5>Lets get in touch! You can reach me at      
+                    <i class="fa-solid fa-arrow-right"></i>
+                </h5>
+                <a target="_blank" href="mailto:mehrnazz.khosravi@gmail.com">
+                    <i class="fa-solid fa-envelope"></i> 
+                    Email
+                </a>
+                <a target="_blank" href="https://www.linkedin.com/in/mehrnaz-khosravi/">
+                    <i class="fa-brands fa-linkedin"></i> 
+                    Linkedin
+                </a>
+                <a target="_blank" href="https://github.com/Mehkhosravi">
+                    <i class="fa-brands fa-github"></i> 
+                    Github 
+                </a>
+            </div>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px dashed #ccc;">
+            <div>
+                <button id="play-button" onclick="playGame()" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">
+                    Play Dice Game! 
+                </button>   
+            </div>
+            <div id="dice-game" style="display: none; text-align: center; margin-top: 20px;">
+                <h3>Mehrnaz scores: <span id="user-score">0</span></h3>
+                <h3>PC scores: <span id="pc-score">0</span></h3>
+                <div id="dice" style="font-size: 80px; margin: 20px 0;">🎲</div>
+                <h2 id="die-text">Roll a dice!</h2>
+                <nav>
+                    <button id="roll-button" onclick="rollDice()" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">
+                        Roll!
+                    </button>
+                </nav>
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <h2 id="game-result" style="color: #ff4757;"></h2>
+                <button onclick="resetGame()" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">
+                    Reset!
+                </button>
+            </div>
+            </section>
+    </main>
+    <footer></footer>
+
+    <script>
+        function playGame() {
+            document.getElementById("dice-game").style.display = "block";
+            document.getElementById("play-button").style.display = "none";
+            document.getElementById("game-result").innerText = "";
+            resetGame();
+        }
+
+        let userScore = 0;
+        let pcScore = 0;
+
+        // Cache elements after the DOM finishes rendering
+        const resultDiv = document.getElementById("game-result");
+        const userScoreEl = document.getElementById("user-score");
+        const pcScoreEl = document.getElementById("pc-score");
+        const dieTextEl = document.getElementById("die-text");
+        const rollButton = document.getElementById("roll-button");
+        const gameContainer = document.getElementById("dice-game");
+
+        function rollDice() {
+            // Disable the roll button immediately so user doesn't multi-click
+            rollButton.disabled = true;
+
+            // 1. User's Roll (Instant)
+            const playerRoll = Math.floor(Math.random() * 6) + 1;
+            userScore += playerRoll;
+            userScoreEl.innerText = userScore;
+            dieTextEl.innerText = `You rolled a ${playerRoll}! Waiting for PC...`;
+
+            // Early check: if User hits over 20, game could end before PC rolls
+            if (userScore > 20) {
+                endGame();
+                return; 
+            }
+
+            // 2. PC's Roll (Delayed by 1 second)
+            setTimeout(function() {
+                const pcRoll = Math.floor(Math.random() * 6) + 1;
+                pcScore += pcRoll;
+                pcScoreEl.innerText = pcScore;
+                dieTextEl.innerText = `PC rolled a ${pcRoll}! Your turn!`;
+
+                if (pcScore > 20) {
+                    endGame();
+                } else {
+                    // Re-activate button for next turn
+                    rollButton.disabled = false;
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameContainer.style.display = "none";
+            
+            if (userScore === pcScore) {
+                resultDiv.innerText = "Equal! Let's shake hands!";
+            } else if (userScore > pcScore) {
+                resultDiv.innerText = "You win! How is it possible!";
+            } else {
+                resultDiv.innerText = "I defeated you! Go home and try harder next time!";
+            }
+        }
+
+        function resetGame() {
+            userScore = 0;
+            pcScore = 0;
+            userScoreEl.innerText = userScore;
+            pcScoreEl.innerText = pcScore;
+            resultDiv.innerText = ""; 
+            dieTextEl.innerText = "Roll a dice!";
+            gameContainer.style.display = "block";
+            rollButton.disabled = false; 
+        }
+    </script>
+    </body>
+</html>
