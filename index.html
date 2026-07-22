@@ -54,7 +54,16 @@
             <div id="dice-game" style="display: none; text-align: center; margin-top: 20px;">
                 <h3>your scores: <span id="user-score">0</span></h3>
                 <h3>Mehrnaz's scores: <span id="pc-score">0</span></h3>
-                <div id="dice" style="font-size: 80px; margin: 20px 0;">🎲</div>
+                <div style="perspective:600px; margin: 20px auto; width:80px;">
+                    <div id="cube" style="width:80px;height:80px;position:relative;transform-style:preserve-3d;transition:transform 1.1s cubic-bezier(.34,1.56,.64,1);transform:rotateX(-20deg) rotateY(30deg)">
+                        <div class="dice-face" style="transform:rotateY(0deg) translateZ(40px)">1</div>
+                        <div class="dice-face" style="transform:rotateY(180deg) translateZ(40px)">6</div>
+                        <div class="dice-face" style="transform:rotateY(90deg) translateZ(40px)">2</div>
+                        <div class="dice-face" style="transform:rotateY(-90deg) translateZ(40px)">5</div>
+                        <div class="dice-face" style="transform:rotateX(90deg) translateZ(40px)">3</div>
+                        <div class="dice-face" style="transform:rotateX(-90deg) translateZ(40px)">4</div>
+                    </div>
+                </div>
                 <h2 id="die-text">Roll a dice!</h2>
                 <nav>
                     <button id="roll-button" onclick="rollDice()" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">
@@ -167,31 +176,53 @@
         href="https://github.com/Mehkhosravi">GitHub</a></p>
     </footer>
 
-    <script>
-        function playGame() {
-            document.getElementById("dice-game").style.display = "block";
-            document.getElementById("play-button").style.display = "none";
-            document.getElementById("game-result").innerText = "";
-            resetGame();
-        }
+   <script>
+    function playGame() {
+        document.getElementById("dice-game").style.display = "block";
+        document.getElementById("play-button").style.display = "none";
+        document.getElementById("game-result").innerText = "";
+        resetGame();
+    }
 
-        let userScore = 0;
-        let pcScore = 0;
+    let userScore = 0;
+    let pcScore = 0;
 
-        // Cache elements after the DOM finishes rendering
-        const resultDiv = document.getElementById("game-result");
-        const userScoreEl = document.getElementById("user-score");
-        const pcScoreEl = document.getElementById("pc-score");
-        const dieTextEl = document.getElementById("die-text");
-        const rollButton = document.getElementById("roll-button");
-        const gameContainer = document.getElementById("dice-game");
+    // Cache elements after the DOM finishes rendering
+    const resultDiv = document.getElementById("game-result");
+    const userScoreEl = document.getElementById("user-score");
+    const pcScoreEl = document.getElementById("pc-score");
+    const dieTextEl = document.getElementById("die-text");
+    const rollButton = document.getElementById("roll-button");
+    const gameContainer = document.getElementById("dice-game");
+    const cube = document.getElementById("cube");
 
-        function rollDice() {
-            // Disable the roll button immediately so user doesn't multi-click
-            rollButton.disabled = true;
+    const diceTargets = {
+        1: { x: 0, y: 0 },
+        2: { x: 0, y: -90 },
+        3: { x: -90, y: 0 },
+        4: { x: 90, y: 0 },
+        5: { x: 0, y: 90 },
+        6: { x: 0, y: 180 }
+    };
 
-            // 1. User's Roll (Instant)
-            const playerRoll = Math.floor(Math.random() * 6) + 1;
+    function spinCubeTo(number) {
+        const t = diceTargets[number];
+        const spinsX = 360 * (2 + Math.floor(Math.random() * 2));
+        const spinsY = 360 * (2 + Math.floor(Math.random() * 2));
+        cube.style.transform = `rotateX(${t.x + spinsX}deg) rotateY(${t.y + spinsY}deg)`;
+    }
+
+    function rollDice() {
+        // Disable the roll button immediately so user doesn't multi-click
+        rollButton.disabled = true;
+        dieTextEl.innerText = "Rolling...";
+
+        // 1. User's Roll (Instant)
+        const playerRoll = Math.floor(Math.random() * 6) + 1;
+        spinCubeTo(playerRoll);
+
+        // Wait for the cube animation (1.1s) before updating score/text
+        setTimeout(function () {
             userScore += playerRoll;
             userScoreEl.innerText = userScore;
             dieTextEl.innerText = `You rolled a ${playerRoll}! Waiting for PC...`;
@@ -199,47 +230,51 @@
             // Early check: if User hits over 20, game could end before PC rolls
             if (userScore > 20) {
                 endGame();
-                return; 
+                return;
             }
 
-            // 2. PC's Roll (Delayed by 1 second)
-            setTimeout(function() {
+            // 2. PC's Roll (short pause, then spin)
+            setTimeout(function () {
                 const pcRoll = Math.floor(Math.random() * 6) + 1;
-                pcScore += pcRoll;
-                pcScoreEl.innerText = pcScore;
-                dieTextEl.innerText = `PC rolled a ${pcRoll}! Your turn!`;
+                spinCubeTo(pcRoll);
 
-                if (pcScore > 20) {
-                    endGame();
-                } else {
-                    // Re-activate button for next turn
-                    rollButton.disabled = false;
-                }
-            }, 1000);
-        }
+                setTimeout(function () {
+                    pcScore += pcRoll;
+                    pcScoreEl.innerText = pcScore;
+                    dieTextEl.innerText = `PC rolled a ${pcRoll}! Your turn!`;
 
-        function endGame() {
-            gameContainer.style.display = "none";
-            
-            if (userScore === pcScore) {
-                resultDiv.innerText = "Equal! Let's shake hands!";
-            } else if (userScore > pcScore) {
-                resultDiv.innerText = "You win! How is it possible!";
-            } else {
-                resultDiv.innerText = "I defeated you! Go home and try harder next time!";
-            }
-        }
+                    if (pcScore > 20) {
+                        endGame();
+                    } else {
+                        // Re-activate button for next turn
+                        rollButton.disabled = false;
+                    }
+                }, 1150);
+            }, 400);
+        }, 1150);
+    }
 
-        function resetGame() {
-            userScore = 0;
-            pcScore = 0;
-            userScoreEl.innerText = userScore;
-            pcScoreEl.innerText = pcScore;
-            resultDiv.innerText = ""; 
-            dieTextEl.innerText = "Roll a dice!";
-            gameContainer.style.display = "block";
-            rollButton.disabled = false; 
+    function endGame() {
+        gameContainer.style.display = "none";
+
+        if (userScore === pcScore) {
+            resultDiv.innerText = "Equal! Let's shake hands!";
+        } else if (userScore > pcScore) {
+            resultDiv.innerText = "You win! How is it possible!";
+        } else {
+            resultDiv.innerText = "I defeated you! Go home and try harder next time!";
         }
-    </script>
-    </body>
-</html>
+    }
+
+    function resetGame() {
+        userScore = 0;
+        pcScore = 0;
+        userScoreEl.innerText = userScore;
+        pcScoreEl.innerText = pcScore;
+        resultDiv.innerText = "";
+        dieTextEl.innerText = "Roll a dice!";
+        gameContainer.style.display = "block";
+        rollButton.disabled = false;
+        cube.style.transform = "rotateX(-20deg) rotateY(30deg)";
+    }
+</script>
